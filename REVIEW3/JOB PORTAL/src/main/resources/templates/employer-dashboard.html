@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Employer Dashboard — Nexus Jobs</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <link rel="stylesheet" th:href="@{/css/dashboard.css}"/>
+  <link rel="stylesheet" th:href="@{/css/animations.css}"/>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon">⚡</div><span class="sidebar-logo-text">Nexus<span>Jobs</span></span></div>
+    <div class="sidebar-section-label">Employer</div>
+    <div class="nav-item active" onclick="showSection('overview',this)"><span class="nav-icon">📊</span><span>Overview</span></div>
+    <div class="nav-item" onclick="showSection('jobs',this)"><span class="nav-icon">💼</span><span>My Jobs</span></div>
+    <div class="nav-item" onclick="showSection('applications',this)"><span class="nav-icon">📋</span><span>Applications</span></div>
+    <div class="nav-item" onclick="showSection('postJob',this)"><span class="nav-icon">➕</span><span>Post a Job</span></div>
+    <div class="nav-item" onclick="showSection('profile',this)"><span class="nav-icon">🏢</span><span>Company Profile</span></div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar avatar-sm" th:classappend="${user.avatarClass}">🏢</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" th:text="${user.name}">Employer</div>
+          <div class="sidebar-user-role" th:text="${user.company != null ? user.company : 'Employer'}" style="color:var(--accent)"></div>
+        </div>
+      </div>
+      <a th:href="@{/logout}" class="nav-item" style="text-decoration:none"><span class="nav-icon">🚪</span><span>Sign Out</span></a>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <button class="topbar-btn mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">☰</button>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700">🏢 Employer Dashboard</div>
+    <div class="topbar-actions"><div class="avatar avatar-sm" th:classappend="${user.avatarClass}">🏢</div></div>
+  </header>
+
+  <main class="main-content">
+    <div th:if="${successMsg}" class="card" style="background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.3);color:var(--accent);margin-bottom:16px;padding:12px 16px" th:text="${successMsg}"></div>
+    <div th:if="${errorMsg}" class="card" style="background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3);color:var(--danger);margin-bottom:16px;padding:12px 16px" th:text="${errorMsg}"></div>
+
+    <!-- ═══ OVERVIEW ═══ -->
+    <section class="section active" id="sectionOverview">
+      <div class="page-header"><h1 class="page-title">Overview</h1><p class="page-subtitle">Your hiring activity at a glance.</p></div>
+      <div class="stats-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="stat-card"><div class="stat-icon">💼</div><div class="stat-number" th:text="${activeJobsCount}">0</div><div style="font-size:.82rem;color:var(--text-muted)">Active Jobs</div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-number" th:text="${totalApplications}">0</div><div style="font-size:.82rem;color:var(--text-muted)">Applications</div></div>
+        <div class="stat-card"><div class="stat-icon">🎤</div><div class="stat-number" th:text="${shortlisted}">0</div><div style="font-size:.82rem;color:var(--text-muted)">Shortlisted</div></div>
+        <div class="stat-card"><div class="stat-icon">👁</div><div class="stat-number" th:text="${totalViews}">0</div><div style="font-size:.82rem;color:var(--text-muted)">Job Views</div></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;margin-bottom:16px">⚡ Recent Applications</h3>
+        <div th:each="app : ${myApplications}" th:if="${appStat.index < 5}" class="flex items-center gap-md" style="padding:10px 0;border-bottom:1px solid var(--glass-border)">
+          <div class="avatar avatar-sm avatar-gradient-1">👤</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:.88rem" th:text="${app.seeker.name}"></div>
+            <div style="font-size:.8rem;color:var(--text-muted)" th:text="${app.job.title}"></div>
+          </div>
+          <span class="badge" th:classappend="${app.statusBadgeClass}" th:text="${app.statusLabel}"></span>
+          <span style="font-size:.75rem;color:var(--text-muted)" th:text="${#temporals.format(app.appliedAt,'MMM dd')}"></span>
+        </div>
+        <div th:if="${#lists.isEmpty(myApplications)}" style="text-align:center;padding:24px;color:var(--text-muted)">No applications yet.</div>
+      </div>
+    </section>
+
+    <!-- ═══ MY JOBS ═══ -->
+    <section class="section" id="sectionJobs">
+      <div class="page-header"><h1 class="page-title">My Job Postings</h1><p class="page-subtitle">Manage all your job listings.</p></div>
+      <div class="admin-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Job Title</th><th>Location / Type</th><th>Salary</th><th>Stats</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr th:each="job : ${myJobs}">
+              <td><div style="font-weight:600;font-size:.88rem" th:text="${job.title}"></div><div style="font-size:.75rem;color:var(--text-muted)" th:text="${job.category}"></div></td>
+              <td style="font-size:.82rem;color:var(--text-secondary)" th:text="${job.location + ' · ' + job.type}"></td>
+              <td style="font-weight:600;color:var(--accent);font-size:.85rem" th:text="${job.formattedSalary}"></td>
+              <td style="font-size:.8rem;color:var(--text-secondary)" th:text="'👁 ' + ${job.views} + ' · 📋 ' + ${job.applicationCount}"></td>
+              <td><span class="badge" th:classappend="${job.status == 'active'} ? 'badge-accent' : 'badge-muted'" th:text="${job.status}"></span></td>
+              <td>
+                <div class="flex gap-xs">
+                  <form th:action="@{/dashboard/employer/jobs/{id}/toggle(id=${job.id})}" method="post" style="display:inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button class="btn btn-ghost btn-sm" type="submit" th:text="${job.status == 'active'} ? 'Pause' : 'Activate'"></button>
+                  </form>
+                  <form th:action="@{/dashboard/employer/jobs/{id}/delete(id=${job.id})}" method="post" style="display:inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Delete this job?')">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div th:if="${#lists.isEmpty(myJobs)}" style="text-align:center;padding:48px;color:var(--text-muted)">No jobs posted yet. Post your first job!</div>
+      </div>
+    </section>
+
+    <!-- ═══ APPLICATIONS ═══ -->
+    <section class="section" id="sectionApplications">
+      <div class="page-header"><h1 class="page-title">All Applications</h1><p class="page-subtitle">Review and manage candidates.</p></div>
+      <div class="admin-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Candidate</th><th>Job</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr th:each="app : ${myApplications}">
+              <td>
+                <div class="flex items-center gap-sm">
+                  <div class="avatar avatar-sm avatar-gradient-1">👤</div>
+                  <div>
+                    <div style="font-weight:600;font-size:.88rem" th:text="${app.seeker.name}"></div>
+                    <div style="font-size:.75rem;color:var(--text-muted)" th:text="${app.seeker.email}"></div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-size:.85rem;color:var(--text-secondary)" th:text="${app.job.title}"></td>
+              <td style="font-size:.8rem;color:var(--text-muted)" th:text="${#temporals.format(app.appliedAt,'MMM dd, yyyy')}"></td>
+              <td><span class="badge" th:classappend="${app.statusBadgeClass}" th:text="${app.statusLabel}"></span></td>
+              <td>
+                <form th:action="@{/dashboard/employer/applications/{id}/status(id=${app.id})}" method="post" class="flex gap-xs">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                  <select class="form-control" name="status" style="width:auto;font-size:.8rem;padding:4px 8px">
+                    <option value="APPLIED" th:selected="${app.status.name() == 'APPLIED'}">Applied</option>
+                    <option value="SCREENING" th:selected="${app.status.name() == 'SCREENING'}">Screening</option>
+                    <option value="INTERVIEW" th:selected="${app.status.name() == 'INTERVIEW'}">Interview</option>
+                    <option value="OFFERED" th:selected="${app.status.name() == 'OFFERED'}">Offered</option>
+                    <option value="REJECTED" th:selected="${app.status.name() == 'REJECTED'}">Rejected</option>
+                  </select>
+                  <button class="btn btn-primary btn-sm" type="submit">Update</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div th:if="${#lists.isEmpty(myApplications)}" style="text-align:center;padding:48px;color:var(--text-muted)">No applications received yet.</div>
+      </div>
+    </section>
+
+    <!-- ═══ POST A JOB ═══ -->
+    <section class="section" id="sectionPostJob">
+      <div class="page-header"><h1 class="page-title">Post a New Job</h1><p class="page-subtitle">Reach thousands of qualified candidates.</p></div>
+      <div class="card">
+        <form th:action="@{/dashboard/employer/jobs/create}" method="post" class="flex flex-col gap-md">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="form-group"><label class="form-label">Job Title *</label><input class="form-control" name="title" type="text" placeholder="Senior Full Stack Engineer" required/></div>
+            <div class="form-group"><label class="form-label">Location *</label><input class="form-control" name="location" type="text" placeholder="San Francisco, CA" required/></div>
+            <div class="form-group">
+              <label class="form-label">Job Type *</label>
+              <select class="form-control" name="type" required>
+                <option value="Full-time">Full-time</option><option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option><option value="Internship">Internship</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="form-control" name="category">
+                <option value="Engineering">Engineering</option><option value="Design">Design</option>
+                <option value="Data Science">Data Science</option><option value="Marketing">Marketing</option>
+                <option value="Security">Security</option><option value="DevOps">DevOps</option><option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Min Salary ($)</label><input class="form-control" name="salaryMin" type="number" placeholder="80000"/></div>
+            <div class="form-group"><label class="form-label">Max Salary ($)</label><input class="form-control" name="salaryMax" type="number" placeholder="120000"/></div>
+            <div class="form-group"><label class="form-label">Experience Required</label><input class="form-control" name="experience" type="text" placeholder="2-4 years"/></div>
+            <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:28px">
+              <input type="checkbox" id="remoteCheck" name="remote" value="true"/>
+              <label for="remoteCheck" class="form-label" style="margin:0">Remote-friendly</label>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Required Skills (comma-separated)</label><input class="form-control" name="skills" type="text" placeholder="React, Node.js, TypeScript"/></div>
+          <div class="form-group"><label class="form-label">Job Description</label><textarea class="form-control" name="description" rows="5" placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea></div>
+          <button class="btn btn-primary" type="submit" style="align-self:flex-start">Post Job →</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ═══ COMPANY PROFILE ═══ -->
+    <section class="section" id="sectionProfile">
+      <div class="page-header"><h1 class="page-title">Company Profile</h1><p class="page-subtitle">Help candidates learn about your company.</p></div>
+      <div class="card">
+        <form th:action="@{/dashboard/employer/profile/update}" method="post" class="flex flex-col gap-md">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="form-group"><label class="form-label">Contact Name</label><input class="form-control" name="name" type="text" th:value="${user.name}"/></div>
+            <div class="form-group"><label class="form-label">Company Name</label><input class="form-control" name="company" type="text" th:value="${user.company}"/></div>
+            <div class="form-group"><label class="form-label">Industry</label><input class="form-control" name="industry" type="text" th:value="${user.industry}"/></div>
+            <div class="form-group"><label class="form-label">Website</label><input class="form-control" name="website" type="url" th:value="${user.website}" placeholder="https://yourcompany.com"/></div>
+          </div>
+          <div class="form-group"><label class="form-label">About Company</label><textarea class="form-control" name="about" rows="4" th:text="${user.about}" placeholder="Tell candidates about your company, culture, and mission..."></textarea></div>
+          <button class="btn btn-primary" type="submit" style="align-self:flex-start">Save Profile</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toast-container"></div>
+<script th:src="@{/js/app.js}"></script>
+<script>
+  function showSection(id, navEl) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('section' + id.charAt(0).toUpperCase() + id.slice(1)).classList.add('active');
+    if (navEl) navEl.classList.add('active');
+  }
+</script>
+</body>
+</html>

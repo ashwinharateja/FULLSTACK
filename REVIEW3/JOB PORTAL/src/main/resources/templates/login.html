@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In — Nexus Jobs</title>
+  <meta name="description" content="Sign in to your Nexus Jobs account. Job seekers get secure OTP verification."/>
+  <link rel="stylesheet" th:href="@{/css/main.css}"/>
+  <link rel="stylesheet" th:href="@{/css/animations.css}"/>
+  <style>
+    .auth-page{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;background:var(--bg-0)}
+    .auth-left{display:flex;align-items:center;justify-content:center;padding:48px;position:relative;overflow:hidden}
+    .auth-left-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(124,111,255,.12),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(0,191,165,.08),transparent 50%)}
+    .auth-left-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(124,111,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(124,111,255,.07) 1px,transparent 1px);background-size:50px 50px}
+    .auth-left-content{position:relative;z-index:2;max-width:460px;width:100%}
+    .auth-logo{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:36px;text-decoration:none;color:var(--text-primary)}
+    .auth-logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+    .auth-logo span{color:var(--accent)}
+    .auth-heading{font-size:2rem;font-weight:800;margin-bottom:6px}
+    .auth-sub{color:var(--text-secondary);margin-bottom:28px}
+    .auth-form{display:flex;flex-direction:column;gap:18px}
+    /* ── Tab Switcher ── */
+    .login-tabs{display:flex;gap:0;background:var(--bg-2);border-radius:12px;padding:4px;margin-bottom:28px;border:1px solid var(--glass-border)}
+    .login-tab{flex:1;padding:10px 16px;border:none;background:transparent;color:var(--text-muted);font-size:.85rem;font-weight:600;border-radius:10px;cursor:pointer;transition:all .25s;font-family:inherit}
+    .login-tab.active{background:linear-gradient(135deg,var(--primary),rgba(0,191,165,.7));color:#fff;box-shadow:0 2px 12px rgba(124,111,255,.3)}
+    .login-tab:hover:not(.active){color:var(--text-primary);background:rgba(124,111,255,.08)}
+    /* ── OTP badge ── */
+    .otp-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(0,212,170,.15),rgba(108,99,255,.1));border:1px solid rgba(0,212,170,.3);border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px}
+    /* ── Alerts ── */
+    .alert-error{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:var(--radius-md);padding:10px 14px;color:var(--danger);font-size:.85rem;margin-bottom:4px}
+    .alert-success{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:var(--radius-md);padding:10px 14px;color:var(--accent);font-size:.85rem;margin-bottom:4px}
+    /* ── Demo section ── */
+    .auth-divider{display:flex;align-items:center;gap:12px;color:var(--text-muted);font-size:.8rem}
+    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--glass-border)}
+    .demo-accounts{background:var(--bg-2);border:1px solid var(--glass-border);border-radius:var(--radius-md);padding:16px;margin-top:8px}
+    .demo-accounts h4{font-size:.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+    .demo-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(124,111,255,.08);font-size:.82rem}
+    .demo-item:last-child{border-bottom:none}
+    .demo-label{color:var(--text-secondary)}
+    .demo-creds{color:var(--text-muted);font-family:monospace;font-size:.78rem}
+    .demo-fill{font-size:.72rem;color:var(--primary);cursor:pointer;padding:2px 8px;background:rgba(124,111,255,.1);border-radius:4px;transition:background .2s}
+    .demo-fill:hover{background:rgba(124,111,255,.2)}
+    /* ── Right panel ── */
+    .auth-right{background:linear-gradient(135deg,#EEF0FF 0%,#F5F6FF 100%);border-left:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;padding:48px;position:relative;overflow:hidden}
+    .auth-right-content{text-align:center;max-width:360px;position:relative;z-index:2}
+    .auth-right h2{font-size:1.8rem;font-weight:800;margin-bottom:16px}
+    .auth-right p{color:var(--text-secondary);margin-bottom:32px}
+    .auth-features{display:flex;flex-direction:column;gap:16px;text-align:left}
+    .auth-feature{display:flex;align-items:flex-start;gap:14px}
+    .auth-feature-icon{width:40px;height:40px;border-radius:var(--radius-md);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+    .auth-feature-text h4{font-size:.9rem;font-weight:600;margin-bottom:2px}
+    .auth-feature-text p{font-size:.8rem;color:var(--text-secondary);margin:0}
+    .otp-info-box{background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.2);border-radius:12px;padding:18px;margin-top:24px;text-align:left}
+    .otp-info-box h4{font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:8px}
+    .otp-info-box p{font-size:.8rem;color:var(--text-secondary);margin:0;line-height:1.6}
+    @media(max-width:900px){.auth-page{grid-template-columns:1fr}.auth-right{display:none}.auth-left{padding:32px 24px}}
+  </style>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-left-bg"></div>
+    <div class="auth-left-grid"></div>
+    <div class="auth-left-content animate-up">
+      <a th:href="@{/}" class="auth-logo">
+        <div class="auth-logo-icon">⚡</div>
+        Nexus<span>Jobs</span>
+      </a>
+      <h1 class="auth-heading">Welcome back</h1>
+      <p class="auth-sub">Sign in to continue your career journey.</p>
+
+      <!-- Global flash messages -->
+      <div th:if="${error}"      class="alert-error"   th:text="${error}"></div>
+      <div th:if="${msg}"        class="alert-success"  th:text="${msg}"></div>
+      <div th:if="${seekerError}" class="alert-error"  th:text="${seekerError}"></div>
+
+      <!-- ── Tab Switcher ── -->
+      <div class="login-tabs" role="tablist">
+        <button class="login-tab active" id="tab-seeker"
+                onclick="switchTab('seeker')" role="tab" aria-selected="true"
+                aria-controls="panel-seeker">
+          👤 Job Seeker
+        </button>
+        <button class="login-tab" id="tab-employer"
+                onclick="switchTab('employer')" role="tab" aria-selected="false"
+                aria-controls="panel-employer">
+          🏢 Employer / Admin
+        </button>
+      </div>
+
+      <!-- ══════ SEEKER PANEL ══════ -->
+      <div id="panel-seeker" role="tabpanel" aria-labelledby="tab-seeker">
+        <div class="otp-badge">🔐 OTP Secured Login</div>
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:18px;margin-top:-4px">
+          We'll send a one-time code to your registered email after verifying your password.
+        </p>
+        <form class="auth-form" id="seekerLoginForm" th:action="@{/seeker-login}" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <div class="form-group">
+            <label class="form-label" for="seekerEmail">Email address</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">📧</span>
+              <input class="form-control" id="seekerEmail" name="email" type="email"
+                     placeholder="you@example.com" required autocomplete="email"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="seekerPassword">Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">🔒</span>
+              <input class="form-control" id="seekerPassword" name="password" type="password"
+                     placeholder="••••••••" required autocomplete="current-password"/>
+            </div>
+          </div>
+          <button class="btn btn-primary w-full btn-lg" type="submit" id="seekerLoginBtn">
+            Continue — Send OTP →
+          </button>
+        </form>
+      </div>
+
+      <!-- ══════ EMPLOYER / ADMIN PANEL ══════ -->
+      <div id="panel-employer" role="tabpanel" aria-labelledby="tab-employer" style="display:none">
+        <form class="auth-form" id="loginForm" th:action="@{/login}" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email address</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">📧</span>
+              <input class="form-control" id="loginEmail" name="username" type="email"
+                     placeholder="you@example.com" required autocomplete="email"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">🔒</span>
+              <input class="form-control" id="loginPassword" name="password" type="password"
+                     placeholder="••••••••" required autocomplete="current-password"/>
+            </div>
+          </div>
+          <button class="btn btn-primary w-full btn-lg" type="submit" id="loginBtn">Sign In →</button>
+        </form>
+
+        <div class="auth-divider" style="margin:20px 0">Quick Demo Access</div>
+        <div class="demo-accounts">
+          <h4>🚀 Demo credentials</h4>
+          <div class="demo-item">
+            <span class="demo-label">🏢 Employer</span>
+            <span class="demo-creds">employer@techcorp.com / employer123</span>
+            <span class="demo-fill" onclick="fillDemo('employer@techcorp.com','employer123')">Fill</span>
+          </div>
+          <div class="demo-item">
+            <span class="demo-label">👑 Admin</span>
+            <span class="demo-creds">admin@nexusjobs.com / admin123</span>
+            <span class="demo-fill" onclick="fillDemo('admin@nexusjobs.com','admin123')">Fill</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seeker demo note (always visible on seeker tab) -->
+      <div id="seeker-demo-note" style="margin-top:16px">
+        <div class="auth-divider" style="margin:16px 0">Demo Seeker</div>
+        <div class="demo-accounts">
+          <h4>👤 Seeker demo credentials</h4>
+          <div class="demo-item">
+            <span class="demo-label">seeker@email.com / seeker123</span>
+            <span class="demo-fill" onclick="fillSeeker('seeker@email.com','seeker123')">Fill</span>
+          </div>
+          <p style="font-size:.74rem;color:var(--text-muted);margin:8px 0 0">
+            💡 OTP is printed to the server console in dev-mode.
+          </p>
+        </div>
+      </div>
+
+      <p style="text-align:center;margin-top:20px;font-size:.88rem;color:var(--text-muted)">
+        Don't have an account? <a th:href="@{/register}" style="color:var(--primary-light);font-weight:600">Create one →</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Right decorative panel ── -->
+  <div class="auth-right">
+    <div class="auth-right-content">
+      <h2>Your next opportunity<br/>awaits 🚀</h2>
+      <p>Everything you need to land your dream job, in one platform.</p>
+      <div class="auth-features">
+        <div class="auth-feature animate-up-1">
+          <div class="auth-feature-icon" style="background:rgba(108,99,255,.15)">⚡</div>
+          <div class="auth-feature-text"><h4>AI-Powered Matching</h4><p>Get job recommendations tailored to your skills.</p></div>
+        </div>
+        <div class="auth-feature animate-up-2">
+          <div class="auth-feature-icon" style="background:rgba(0,212,170,.12)">📊</div>
+          <div class="auth-feature-text"><h4>Application Tracking</h4><p>Track every stage from applied to offer.</p></div>
+        </div>
+        <div class="auth-feature animate-up-3">
+          <div class="auth-feature-icon" style="background:rgba(255,217,61,.12)">💬</div>
+          <div class="auth-feature-text"><h4>Direct Chat</h4><p>Message employers and coordinate interviews.</p></div>
+        </div>
+      </div>
+      <div class="otp-info-box">
+        <h4>🔐 Enhanced Security for Seekers</h4>
+        <p>Job seekers now enjoy two-factor authentication. After your password, a one-time code is sent to your email — keeping your profile and applications safe.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tab) {
+    const isSeeker = tab === 'seeker';
+    document.getElementById('panel-seeker').style.display   = isSeeker ? 'block' : 'none';
+    document.getElementById('panel-employer').style.display = isSeeker ? 'none'  : 'block';
+    document.getElementById('seeker-demo-note').style.display = isSeeker ? 'block' : 'none';
+    document.getElementById('tab-seeker').classList.toggle('active',   isSeeker);
+    document.getElementById('tab-employer').classList.toggle('active', !isSeeker);
+    document.getElementById('tab-seeker').setAttribute('aria-selected',   isSeeker);
+    document.getElementById('tab-employer').setAttribute('aria-selected', !isSeeker);
+  }
+
+  function fillDemo(email, pass) {
+    document.getElementById('loginEmail').value    = email;
+    document.getElementById('loginPassword').value = pass;
+  }
+
+  function fillSeeker(email, pass) {
+    document.getElementById('seekerEmail').value    = email;
+    document.getElementById('seekerPassword').value = pass;
+  }
+
+  // If there was a seeker error, auto-switch to seeker tab
+  (function(){
+    const hasSeekerErr = document.querySelector('[th\\:if="${seekerError}"]');
+    // Use a data attribute approach — check if the flash div is visible
+    const errDivs = document.querySelectorAll('.alert-error');
+    // Always start on seeker tab by default (already set in HTML)
+  })();
+</script>
+</body>
+</html>

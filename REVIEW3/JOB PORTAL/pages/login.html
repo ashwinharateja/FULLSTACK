@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Nexus Jobs</title>
+  <meta name="description" content="Sign in to your Nexus Jobs account." />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="../assets/css/animations.css" />
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg-0);
+    }
+    .auth-left {
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-left-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(108,99,255,0.2), transparent 60%),
+                  radial-gradient(ellipse at 70% 80%, rgba(0,212,170,0.1), transparent 50%);
+    }
+    .auth-left-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .auth-left-content { position: relative; z-index: 2; max-width: 440px; width: 100%; }
+    .auth-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800; font-size: 1.4rem; margin-bottom: 48px;
+      text-decoration: none; color: var(--text-primary);
+    }
+    .auth-logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .auth-logo span { color: var(--accent); }
+    .auth-heading { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .auth-sub { color: var(--text-secondary); margin-bottom: 32px; }
+    .auth-form { display: flex; flex-direction: column; gap: 20px; }
+    .auth-divider {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--text-muted); font-size: 0.8rem;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--glass-border);
+    }
+    .demo-accounts {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 16px; margin-top: 8px;
+    }
+    .demo-accounts h4 { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .demo-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.82rem;
+    }
+    .demo-item:last-child { border-bottom: none; }
+    .demo-label { color: var(--text-secondary); }
+    .demo-creds { color: var(--text-muted); font-family: monospace; font-size: 0.78rem; }
+    .demo-fill {
+      font-size: 0.72rem; color: var(--primary-light);
+      cursor: pointer; padding: 2px 8px;
+      background: rgba(108,99,255,0.1); border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .demo-fill:hover { background: rgba(108,99,255,0.2); }
+    .error-msg {
+      background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3);
+      border-radius: var(--radius-md); padding: 10px 14px;
+      color: var(--danger); font-size: 0.85rem; display: none;
+    }
+    /* Right panel */
+    .auth-right {
+      background: linear-gradient(135deg, rgba(108,99,255,0.15) 0%, rgba(0,212,170,0.08) 100%);
+      border-left: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px; position: relative; overflow: hidden;
+    }
+    .auth-right-content { text-align: center; max-width: 360px; position: relative; z-index: 2; }
+    .auth-right h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; }
+    .auth-right p { color: var(--text-secondary); margin-bottom: 32px; }
+    .auth-features { display: flex; flex-direction: column; gap: 16px; text-align: left; }
+    .auth-feature { display: flex; align-items: flex-start; gap: 14px; }
+    .auth-feature-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-md); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .auth-feature-text h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
+    .auth-feature-text p { font-size: 0.8rem; color: var(--text-secondary); margin: 0; }
+    @media (max-width: 900px) {
+      .auth-page { grid-template-columns: 1fr; }
+      .auth-right { display: none; }
+      .auth-left { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+<div class="auth-page">
+  <!-- Left: Form -->
+  <div class="auth-left">
+    <div class="auth-left-bg"></div>
+    <div class="auth-left-grid"></div>
+    <div class="auth-left-content animate-up">
+      <a href="../index.html" class="auth-logo">
+        <div class="auth-logo-icon">⚡</div>
+        Nexus<span>Jobs</span>
+      </a>
+      <h1 class="auth-heading">Welcome back</h1>
+      <p class="auth-sub">Sign in to continue your career journey.</p>
+
+      <div id="errorMsg" class="error-msg"></div>
+
+      <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email address</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">📧</span>
+            <input class="form-control" id="loginEmail" type="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Password</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">🔒</span>
+            <input class="form-control" id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+        </div>
+        <button class="btn btn-primary w-full btn-lg" type="submit" id="loginBtn">
+          Sign In →
+        </button>
+      </form>
+
+      <div class="auth-divider" style="margin:24px 0">Quick Demo Access</div>
+
+      <div class="demo-accounts">
+        <h4>🚀 Demo credentials</h4>
+        <div class="demo-item">
+          <span class="demo-label">👤 Job Seeker</span>
+          <span class="demo-creds">seeker@email.com / seeker123</span>
+          <span class="demo-fill" onclick="fillDemo('seeker@email.com','seeker123')">Fill</span>
+        </div>
+        <div class="demo-item">
+          <span class="demo-label">🏢 Employer</span>
+          <span class="demo-creds">employer@techcorp.com / employer123</span>
+          <span class="demo-fill" onclick="fillDemo('employer@techcorp.com','employer123')">Fill</span>
+        </div>
+        <div class="demo-item">
+          <span class="demo-label">👑 Admin</span>
+          <span class="demo-creds">admin@nexusjobs.com / admin123</span>
+          <span class="demo-fill" onclick="fillDemo('admin@nexusjobs.com','admin123')">Fill</span>
+        </div>
+      </div>
+
+      <p style="text-align:center;margin-top:24px;font-size:0.88rem;color:var(--text-muted)">
+        Don't have an account? <a href="register.html" style="color:var(--primary-light);font-weight:600">Create one →</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Right: Feature showcase -->
+  <div class="auth-right">
+    <div class="auth-right-content">
+      <h2>Your next opportunity<br/>awaits 🚀</h2>
+      <p>Everything you need to land your dream job, in one platform.</p>
+      <div class="auth-features">
+        <div class="auth-feature animate-up-1">
+          <div class="auth-feature-icon" style="background:rgba(108,99,255,0.15)">⚡</div>
+          <div class="auth-feature-text">
+            <h4>AI-Powered Matching</h4>
+            <p>Get job recommendations tailored to your skills and experience.</p>
+          </div>
+        </div>
+        <div class="auth-feature animate-up-2">
+          <div class="auth-feature-icon" style="background:rgba(0,212,170,0.12)">📊</div>
+          <div class="auth-feature-text">
+            <h4>Application Tracking</h4>
+            <p>Track every application stage from applied to offer — all in one view.</p>
+          </div>
+        </div>
+        <div class="auth-feature animate-up-3">
+          <div class="auth-feature-icon" style="background:rgba(255,217,61,0.12)">💬</div>
+          <div class="auth-feature-text">
+            <h4>Direct Chat</h4>
+            <p>Message employers directly and coordinate interviews seamlessly.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script>
+  function fillDemo(email, pass) {
+    document.getElementById('loginEmail').value = email;
+    document.getElementById('loginPassword').value = pass;
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    const errEl = document.getElementById('errorMsg');
+
+    btn.textContent = 'Signing in…';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+
+    setTimeout(() => {
+      const user = DB.Auth.login(email, password);
+      if (!user) {
+        errEl.textContent = '⚠ Incorrect email or password. Try a demo account above.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Sign In →';
+        btn.disabled = false;
+        return;
+      }
+      const dest = {
+        admin: 'admin-dashboard.html',
+        employer: 'employer-dashboard.html',
+        seeker: 'jobseeker-dashboard.html',
+      }[user.role] || '../index.html';
+      window.location.href = dest;
+    }, 600);
+  }
+
+  // Auto-redirect if already logged in
+  const session = DB.Auth.getSession();
+  if (session) {
+    const dest = { admin: 'admin-dashboard.html', employer: 'employer-dashboard.html', seeker: 'jobseeker-dashboard.html' }[session.role];
+    if (dest) window.location.href = dest;
+  }
+</script>
+</body>
+</html>

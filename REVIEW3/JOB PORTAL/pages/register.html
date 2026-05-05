@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — Nexus Jobs</title>
+  <meta name="description" content="Join Nexus Jobs and find your dream career or hire top talent." />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="../assets/css/animations.css" />
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .auth-left {
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px; position: relative; overflow: hidden;
+    }
+    .auth-left-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(108,99,255,0.2), transparent 60%),
+                  radial-gradient(ellipse at 70% 80%, rgba(0,212,170,0.1), transparent 50%);
+    }
+    .auth-left-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .auth-left-content { position: relative; z-index: 2; max-width: 480px; width: 100%; }
+    .auth-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800; font-size: 1.4rem; margin-bottom: 40px;
+      text-decoration: none; color: var(--text-primary);
+    }
+    .auth-logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .auth-logo span { color: var(--accent); }
+    /* Role picker */
+    .role-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .role-option {
+      border: 2px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .role-option:hover { border-color: rgba(108,99,255,0.4); background: rgba(108,99,255,0.05); }
+    .role-option.selected { border-color: var(--primary); background: rgba(108,99,255,0.12); }
+    .role-option.selected::after {
+      content: '✓';
+      position: absolute; top: 8px; right: 10px;
+      font-size: 0.75rem; color: var(--primary-light); font-weight: 700;
+    }
+    .role-icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .role-label { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+    .role-desc { font-size: 0.75rem; color: var(--text-muted); }
+    .auth-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .error-msg {
+      background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3);
+      border-radius: var(--radius-md); padding: 10px 14px;
+      color: var(--danger); font-size: 0.85rem; display: none;
+    }
+    /* Right panel */
+    .auth-right {
+      background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      border-left: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px; position: relative; overflow: hidden;
+    }
+    .auth-right-content { text-align: center; max-width: 360px; position: relative; z-index: 2; }
+    .steps { display: flex; flex-direction: column; gap: 20px; text-align: left; margin-top: 32px; }
+    .step { display: flex; gap: 14px; align-items: flex-start; }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.85rem; color: #fff;
+    }
+    .step-text h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+    .step-text p { font-size: 0.78rem; color: var(--text-secondary); margin: 0; }
+    @media (max-width: 900px) {
+      .auth-page { grid-template-columns: 1fr; }
+      .auth-right { display: none; }
+      .auth-left { padding: 32px 24px; }
+    }
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-left-bg"></div>
+    <div class="auth-left-grid"></div>
+    <div class="auth-left-content animate-up">
+      <a href="../index.html" class="auth-logo">
+        <div class="auth-logo-icon">⚡</div>
+        Nexus<span>Jobs</span>
+      </a>
+      <h1 style="font-size:1.9rem;font-weight:800;margin-bottom:6px">Create your account</h1>
+      <p style="color:var(--text-secondary);margin-bottom:28px">Join 250,000+ professionals on Nexus Jobs</p>
+
+      <!-- Role selection -->
+      <div class="role-picker" id="rolePicker">
+        <div class="role-option selected" id="roleSeeker" onclick="selectRole('seeker')">
+          <div class="role-icon">🔍</div>
+          <div class="role-label">Job Seeker</div>
+          <div class="role-desc">Find & apply to jobs</div>
+        </div>
+        <div class="role-option" id="roleEmployer" onclick="selectRole('employer')">
+          <div class="role-icon">🏢</div>
+          <div class="role-label">Employer</div>
+          <div class="role-desc">Post jobs & hire talent</div>
+        </div>
+      </div>
+
+      <div id="errorMsg" class="error-msg"></div>
+
+      <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="regFirstName">First Name</label>
+            <input class="form-control" id="regFirstName" type="text" placeholder="Jordan" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regLastName">Last Name</label>
+            <input class="form-control" id="regLastName" type="text" placeholder="Lee" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regEmail">Email address</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">📧</span>
+            <input class="form-control" id="regEmail" type="email" placeholder="you@example.com" required />
+          </div>
+        </div>
+        <!-- Employer: company name -->
+        <div class="form-group hidden" id="companyGroup">
+          <label class="form-label" for="regCompany">Company Name</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">🏢</span>
+            <input class="form-control" id="regCompany" type="text" placeholder="Acme Corp" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regPassword">Password</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">🔒</span>
+            <input class="form-control" id="regPassword" type="password" placeholder="Min 6 characters" required minlength="6" />
+          </div>
+        </div>
+        <button class="btn btn-primary w-full btn-lg" type="submit" id="registerBtn">
+          Create Account →
+        </button>
+        <p style="text-align:center;font-size:0.78rem;color:var(--text-muted)">
+          By continuing you agree to our <span style="color:var(--primary-light)">Terms</span> and <span style="color:var(--primary-light)">Privacy Policy</span>
+        </p>
+      </form>
+
+      <p style="text-align:center;margin-top:20px;font-size:0.88rem;color:var(--text-muted)">
+        Already have an account? <a href="login.html" style="color:var(--primary-light);font-weight:600">Sign in →</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-right-content">
+      <div style="font-size:3rem;margin-bottom:16px">🚀</div>
+      <h2 style="font-size:1.7rem;font-weight:800;margin-bottom:12px">Start your journey today</h2>
+      <p style="color:var(--text-secondary)">Everything you need to succeed in your career search.</p>
+      <div class="steps">
+        <div class="step animate-up-1">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <h4>Build your profile</h4>
+            <p>Add your skills, experience, and let employers find you.</p>
+          </div>
+        </div>
+        <div class="step animate-up-2">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <h4>Get AI recommendations</h4>
+            <p>Instantly see jobs matching your unique skill set.</p>
+          </div>
+        </div>
+        <div class="step animate-up-3">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <h4>Apply & get hired</h4>
+            <p>One-click apply, track progress, chat with employers.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script>
+  let selectedRole = 'seeker';
+
+  // Pre-select from URL param
+  const urlRole = new URLSearchParams(location.search).get('role');
+  if (urlRole === 'employer') selectRole('employer');
+
+  function selectRole(role) {
+    selectedRole = role;
+    document.getElementById('roleSeeker').classList.toggle('selected', role === 'seeker');
+    document.getElementById('roleEmployer').classList.toggle('selected', role === 'employer');
+    document.getElementById('companyGroup').classList.toggle('hidden', role !== 'employer');
+  }
+
+  function handleRegister(e) {
+    e.preventDefault();
+    const firstName = document.getElementById('regFirstName').value.trim();
+    const lastName = document.getElementById('regLastName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const company = document.getElementById('regCompany').value.trim();
+    const btn = document.getElementById('registerBtn');
+    const errEl = document.getElementById('errorMsg');
+
+    btn.textContent = 'Creating account…';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+
+    setTimeout(() => {
+      const data = {
+        name: firstName + ' ' + lastName,
+        email, password,
+        role: selectedRole,
+        avatar: selectedRole === 'employer' ? '🏢' : '👤',
+        skills: [],
+      };
+      if (selectedRole === 'employer' && company) data.company = company;
+
+      const user = DB.Auth.register(data);
+      if (!user) {
+        errEl.textContent = '⚠ An account with this email already exists.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Create Account →';
+        btn.disabled = false;
+        return;
+      }
+      const dest = { employer: 'employer-dashboard.html', seeker: 'jobseeker-dashboard.html' }[user.role] || '../index.html';
+      window.location.href = dest;
+    }, 600);
+  }
+
+  // Auto-redirect if logged in
+  const session = DB.Auth.getSession();
+  if (session) {
+    const dest = { admin: 'admin-dashboard.html', employer: 'employer-dashboard.html', seeker: 'jobseeker-dashboard.html' }[session.role];
+    if (dest) window.location.href = dest;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+.glass {
+  @apply bg-white/10 backdrop-blur-xl border border-white/10 shadow-glow;
+}
+
+.gradient-border {
+  border: 1px solid transparent;
+  background: linear-gradient(#0b1120, #0b1120) padding-box, linear-gradient(120deg, rgba(34,211,238,.5), rgba(99,102,241,.5)) border-box;
+}
+
+.skeleton {
+  @apply animate-pulse rounded bg-white/10;
+}

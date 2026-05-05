@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employer Dashboard — Nexus Jobs</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="../assets/css/dashboard.css" />
+  <link rel="stylesheet" href="../assets/css/animations.css" />
+</head>
+<body>
+<div class="app-shell" id="appShell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">⚡</div>
+      <span class="sidebar-logo-text">Nexus<span>Jobs</span></span>
+    </div>
+
+    <div class="sidebar-section-label">Dashboard</div>
+    <div class="nav-item active" data-section="overview" onclick="showSection('overview',this)">
+      <span class="nav-icon">🏠</span><span>Overview</span>
+    </div>
+    <div class="nav-item" data-section="jobs" onclick="showSection('jobs',this)">
+      <span class="nav-icon">💼</span><span>My Jobs</span>
+    </div>
+    <div class="nav-item" data-section="applicants" onclick="showSection('applicants',this)">
+      <span class="nav-icon">👥</span><span>Applicants</span>
+      <span class="nav-badge" id="appsBadge">0</span>
+    </div>
+    <div class="nav-item" data-section="postJob" onclick="showSection('postJob',this)">
+      <span class="nav-icon">➕</span><span>Post a Job</span>
+    </div>
+
+    <div class="sidebar-section-label">Communication</div>
+    <div class="nav-item" data-section="chat" onclick="showSection('chat',this)">
+      <span class="nav-icon">💬</span><span>Messages</span>
+    </div>
+    <div class="nav-item" data-section="notifications" onclick="showSection('notifications',this)">
+      <span class="nav-icon">🔔</span><span>Notifications</span>
+      <span class="nav-badge" id="notifBadge">0</span>
+    </div>
+
+    <div class="sidebar-section-label">Company</div>
+    <div class="nav-item" data-section="profile" onclick="showSection('profile',this)">
+      <span class="nav-icon">🏢</span><span>Company Profile</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUser">
+        <div class="avatar avatar-sm" id="sidebarAvatar"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Loading…</div>
+          <div class="sidebar-user-role">Employer</div>
+        </div>
+      </div>
+      <div class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span><span>Sign Out</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── TOPBAR ── -->
+  <header class="topbar">
+    <button class="topbar-btn mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:var(--text-secondary)">Employer Portal</div>
+    <div class="topbar-actions">
+      <button class="btn btn-accent btn-sm" onclick="showSection('postJob',document.querySelector('[data-section=postJob]'))">+ Post Job</button>
+      <button class="topbar-btn" onclick="showSection('notifications',document.querySelector('[data-section=notifications]'))" title="Notifications" style="position:relative">
+        🔔<span class="notif-dot" id="topbarNotifDot" style="display:none"></span>
+      </button>
+      <div class="avatar avatar-sm" id="topbarAvatar" style="cursor:pointer" onclick="showSection('profile',document.querySelector('[data-section=profile]'))"></div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ── -->
+  <main class="main-content">
+
+    <!-- ═══════════ OVERVIEW ═══════════ -->
+    <section class="section active" id="sectionOverview">
+      <div class="page-header">
+        <h1 class="page-title" id="overviewGreeting">Welcome back! 👋</h1>
+        <p class="page-subtitle">Here's your hiring activity at a glance.</p>
+      </div>
+
+      <div class="stats-row" id="empStats"></div>
+
+      <div class="grid grid-2 gap-lg" style="margin-bottom:var(--space-xl)">
+        <!-- Active Jobs -->
+        <div class="card">
+          <div class="flex items-center justify-between" style="margin-bottom:var(--space-lg)">
+            <h3 style="font-size:1rem">💼 Active Listings</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('jobs',document.querySelector('[data-section=jobs]'))">View All</button>
+          </div>
+          <div id="overviewJobs" class="flex flex-col gap-sm"></div>
+        </div>
+        <!-- Recent Applicants -->
+        <div class="card">
+          <div class="flex items-center justify-between" style="margin-bottom:var(--space-lg)">
+            <h3 style="font-size:1rem">👥 Recent Applicants</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('applicants',document.querySelector('[data-section=applicants]'))">View All</button>
+          </div>
+          <div id="overviewApplicants" class="flex flex-col gap-sm"></div>
+        </div>
+      </div>
+
+      <!-- Analytics chart -->
+      <div class="card">
+        <h3 style="font-size:1rem;margin-bottom:var(--space-lg)">📈 Applications by Job</h3>
+        <div id="empChart" class="chart-bars"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════ MY JOBS ═══════════ -->
+    <section class="section" id="sectionJobs">
+      <div class="page-header flex items-center justify-between flex-wrap gap-md">
+        <div>
+          <h1 class="page-title">My Job Listings</h1>
+          <p class="page-subtitle">Manage all your posted positions.</p>
+        </div>
+        <button class="btn btn-accent" onclick="showSection('postJob',document.querySelector('[data-section=postJob]'))">+ Post New Job</button>
+      </div>
+      <div id="myJobsList" class="flex flex-col gap-md"></div>
+      <div id="noJobsMsg" class="hidden card text-center" style="padding:60px">
+        <div style="font-size:3rem;margin-bottom:12px">📭</div>
+        <h3>No jobs posted yet</h3>
+        <p>Start attracting top talent by posting your first job listing.</p>
+        <button class="btn btn-accent" style="margin-top:16px" onclick="showSection('postJob',document.querySelector('[data-section=postJob]'))">Post a Job</button>
+      </div>
+    </section>
+
+    <!-- ═══════════ APPLICANTS ═══════════ -->
+    <section class="section" id="sectionApplicants">
+      <div class="page-header">
+        <h1 class="page-title">All Applicants</h1>
+        <p class="page-subtitle">Review and manage candidates across all your job listings.</p>
+      </div>
+      <!-- Filter by job -->
+      <div class="card card-sm" style="margin-bottom:var(--space-lg)">
+        <div class="flex gap-md items-center flex-wrap">
+          <label class="form-label" style="margin:0">Filter by job:</label>
+          <select class="form-control" style="width:auto;flex:1;max-width:320px" id="jobFilterSelect" onchange="renderApplicants()">
+            <option value="all">All Jobs</option>
+          </select>
+          <label class="form-label" style="margin:0">Status:</label>
+          <select class="form-control" style="width:auto" id="statusFilterSelect" onchange="renderApplicants()">
+            <option value="all">All Statuses</option>
+            <option value="applied">Applied</option>
+            <option value="screening">Screening</option>
+            <option value="interview">Interview</option>
+            <option value="offered">Offered</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="data-table" id="applicantsTable">
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Job</th>
+              <th>Skills</th>
+              <th>Applied</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="applicantsBody"></tbody>
+        </table>
+      </div>
+      <div id="noApplicantsMsg" class="hidden text-center" style="padding:60px;color:var(--text-muted)">
+        <div style="font-size:3rem;margin-bottom:12px">👤</div>
+        <p>No applicants found for the selected filters.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════ POST JOB ═══════════ -->
+    <section class="section" id="sectionPostJob">
+      <div class="page-header">
+        <h1 class="page-title">Post a New Job</h1>
+        <p class="page-subtitle">Attract the best candidates with a detailed listing.</p>
+      </div>
+      <div class="card animate-up" style="max-width:760px">
+        <div class="flex flex-col gap-lg" id="postJobForm">
+          <div class="grid grid-2 gap-md">
+            <div class="form-group">
+              <label class="form-label">Job Title *</label>
+              <input class="form-control" id="pjTitle" type="text" placeholder="e.g. Senior React Developer" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <select class="form-control" id="pjCategory">
+                <option value="Engineering">Engineering</option>
+                <option value="Design">Design</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Product">Product</option>
+                <option value="Operations">Operations</option>
+                <option value="Sales">Sales</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-2 gap-md">
+            <div class="form-group">
+              <label class="form-label">Location *</label>
+              <input class="form-control" id="pjLocation" type="text" placeholder="City, State or Remote" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Type *</label>
+              <select class="form-control" id="pjType">
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-2 gap-md">
+            <div class="form-group">
+              <label class="form-label">Min Salary (USD/yr)</label>
+              <input class="form-control" id="pjSalaryMin" type="number" placeholder="80000" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Salary (USD/yr)</label>
+              <input class="form-control" id="pjSalaryMax" type="number" placeholder="120000" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Experience Required</label>
+            <input class="form-control" id="pjExperience" type="text" placeholder="e.g. 2-4 years" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Required Skills (comma-separated)</label>
+            <input class="form-control" id="pjSkills" type="text" placeholder="React, TypeScript, Node.js…" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Job Description *</label>
+            <textarea class="form-control" id="pjDescription" rows="6" placeholder="Describe the role, responsibilities, company culture…" required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="flex items-center gap-sm" style="cursor:pointer;color:var(--text-secondary);font-size:0.9rem">
+              <input type="checkbox" id="pjRemote" style="accent-color:var(--primary);width:16px;height:16px" />
+              This role is remote-friendly
+            </label>
+          </div>
+          <div id="postJobError" class="error-msg" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:var(--radius-md);padding:10px 14px;color:var(--danger);font-size:0.85rem"></div>
+          <div class="flex gap-md">
+            <button class="btn btn-ghost" onclick="clearPostJobForm()">Clear</button>
+            <button class="btn btn-accent" onclick="submitJob()" id="postJobBtn">Publish Job →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ CHAT ═══════════ -->
+    <section class="section" id="sectionChat">
+      <div class="page-header">
+        <h1 class="page-title">Messages</h1>
+        <p class="page-subtitle">Communicate with your candidates.</p>
+      </div>
+      <div class="chat-container">
+        <div class="chat-sidebar">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--glass-border)">
+            <input class="form-control" type="text" placeholder="Search conversations…" style="font-size:0.85rem" />
+          </div>
+          <div class="chat-list" id="chatList"></div>
+        </div>
+        <div class="chat-window">
+          <div class="chat-header" id="chatHeader">
+            <div style="font-size:1rem;margin:auto;color:var(--text-muted)">Select a conversation</div>
+          </div>
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input-area" id="chatInputArea" style="display:none">
+            <div class="chat-input">
+              <input class="form-control" id="chatInput" type="text" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMessage()" />
+            </div>
+            <button class="btn btn-primary" onclick="sendMessage()">Send →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ NOTIFICATIONS ═══════════ -->
+    <section class="section" id="sectionNotifications">
+      <div class="page-header flex items-center justify-between">
+        <div>
+          <h1 class="page-title">Notifications</h1>
+          <p class="page-subtitle">Stay informed about your listings.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+      </div>
+      <div id="notifList" class="flex flex-col gap-sm"></div>
+    </section>
+
+    <!-- ═══════════ COMPANY PROFILE ═══════════ -->
+    <section class="section" id="sectionProfile">
+      <div class="page-header">
+        <h1 class="page-title">Company Profile</h1>
+        <p class="page-subtitle">Make a great first impression on candidates.</p>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:var(--space-lg)">
+        <div class="profile-banner"></div>
+        <div class="profile-avatar-wrap">
+          <div class="avatar avatar-xl" id="profileAvatar" style="font-size:2rem"></div>
+        </div>
+        <div class="profile-header">
+          <div class="flex items-center justify-between flex-wrap gap-md">
+            <div>
+              <h2 id="empCompanyName" style="margin-bottom:4px"></h2>
+              <p id="empIndustry" style="color:var(--text-secondary);margin:0"></p>
+            </div>
+            <button class="btn btn-outline" onclick="toggleEmpEdit()">✏️ Edit Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="card hidden" id="empEditForm" style="margin-bottom:var(--space-lg)">
+        <h3 style="margin-bottom:var(--space-lg)">Edit Company Profile</h3>
+        <div class="flex flex-col gap-md">
+          <div class="grid grid-2 gap-md">
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input class="form-control" id="editCompany" type="text" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Industry</label>
+              <input class="form-control" id="editIndustry" type="text" placeholder="Technology, Design…" />
+            </div>
+          </div>
+          <div class="grid grid-2 gap-md">
+            <div class="form-group">
+              <label class="form-label">Website</label>
+              <input class="form-control" id="editWebsite" type="url" placeholder="https://…" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company Size</label>
+              <select class="form-control" id="editSize">
+                <option>1-10</option><option>11-50</option><option>51-200</option>
+                <option>201-500</option><option>500+</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">About the Company</label>
+            <textarea class="form-control" id="editAbout" rows="4"></textarea>
+          </div>
+          <div class="flex gap-md justify-between">
+            <button class="btn btn-ghost" onclick="toggleEmpEdit()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEmpProfile()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2 gap-lg">
+        <div class="card">
+          <h4 style="margin-bottom:var(--space-md)">📊 Hiring Stats</h4>
+          <div id="empProfileStats" class="flex flex-col gap-sm"></div>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:var(--space-md)">🌐 Links</h4>
+          <div id="empLinks"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Applicant Detail Modal -->
+<div class="modal-overlay hidden" id="applicantModal" onclick="closeApplicantModal(event)">
+  <div class="modal" id="applicantModalContent" style="max-width:560px"></div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth.js"></script>
+
+<script>
+  let currentUser = null;
+  let activeThread = null;
+
+  function init() {
+    currentUser = requireAuth('employer');
+    renderSidebarUser();
+    renderOverview();
+    renderBadges();
+    populateJobFilter();
+  }
+
+  function renderSidebarUser() {
+    const u = currentUser;
+    document.getElementById('sidebarName').textContent = u.company || u.name;
+    const av = document.getElementById('sidebarAvatar');
+    av.className = `avatar avatar-sm ${u.avatarClass}`;
+    av.textContent = u.avatar;
+    const tv = document.getElementById('topbarAvatar');
+    tv.className = `avatar avatar-sm ${u.avatarClass}`;
+    tv.textContent = u.avatar;
+    document.getElementById('overviewGreeting').textContent = `Welcome back, ${u.company || u.name.split(' ')[0]}! 👋`;
+  }
+
+  function renderBadges() {
+    const apps = DB.Applications.getByEmployer(currentUser.id);
+    document.getElementById('appsBadge').textContent = apps.length;
+    const unread = DB.Notifications.getUnreadCount(currentUser.id);
+    document.getElementById('notifBadge').textContent = unread;
+    document.getElementById('topbarNotifDot').style.display = unread > 0 ? 'block': 'none';
+  }
+
+  function renderOverview() {
+    const stats = DB.Stats.getEmployer(currentUser.id);
+    const jobs = DB.Jobs.getByEmployer(currentUser.id);
+    const apps = DB.Applications.getByEmployer(currentUser.id);
+
+    // Stats
+    const statsData = [
+      { icon:'💼', label:'Active Jobs', value: stats.activeJobs, color:'primary' },
+      { icon:'📋', label:'Total Applications', value: stats.totalApplications, color:'accent' },
+      { icon:'⭐', label:'Shortlisted', value: stats.shortlisted, color:'warning' },
+      { icon:'👁', label:'Total Views', value: stats.totalViews, color:'danger' },
+    ];
+    document.getElementById('empStats').innerHTML = statsData.map(s => `
+      <div class="stat-card stat-card-${s.color}">
+        <div class="flex items-center justify-between" style="margin-bottom:var(--space-sm)">
+          <div class="stat-icon" style="background:rgba(108,99,255,0.12)">${s.icon}</div>
+        </div>
+        <div class="stat-number">${s.value}</div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px">${s.label}</div>
+      </div>
+    `).join('');
+
+    // Overview jobs
+    const activeJobs = jobs.filter(j => j.status === 'active');
+    document.getElementById('overviewJobs').innerHTML = activeJobs.slice(0,4).map(j => `
+      <div class="flex items-center gap-md" style="padding:8px 0;border-bottom:1px solid var(--glass-border)">
+        <div class="company-logo" style="width:36px;height:36px;font-size:1rem">${j.companyLogo||'🏢'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${j.title}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${j.applications||0} applicants · ${j.views||0} views</div>
+        </div>
+        <span class="badge badge-accent">Active</span>
+      </div>
+    `).join('') || '<p class="text-muted text-sm">No active jobs. Post one now!</p>';
+
+    // Overview applicants
+    document.getElementById('overviewApplicants').innerHTML = apps.slice(0,4).map(a => `
+      <div class="flex items-center gap-md" style="padding:8px 0;border-bottom:1px solid var(--glass-border)">
+        <div class="avatar avatar-sm ${a.seeker?.avatarClass||'avatar-gradient-1'}">${a.seeker?.avatar||'👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:0.88rem">${a.seeker?.name||'Unknown'}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${a.job?.title||''}</div>
+        </div>
+        <span class="badge ${DB.Helpers.statusColor(a.status)}">${DB.Helpers.statusLabel(a.status)}</span>
+      </div>
+    `).join('') || '<p class="text-muted text-sm">No applicants yet.</p>';
+
+    // Chart: applications per job
+    const max = Math.max(...jobs.map(j=>j.applications||0), 1);
+    document.getElementById('empChart').innerHTML = jobs.slice(0,6).map(j => `
+      <div class="chart-bar-item">
+        <div class="chart-bar-val">${j.applications||0}</div>
+        <div class="chart-bar" style="height:${Math.max(((j.applications||0)/max)*120,4)}px" title="${j.title}"></div>
+        <div class="chart-bar-label" style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:0.65rem">${j.title.split(' ').slice(0,2).join(' ')}</div>
+      </div>
+    `).join('');
+
+    renderEmpProfile();
+    renderNotificationsView();
+  }
+
+  /* ── My Jobs ── */
+  function renderMyJobs() {
+    const jobs = DB.Jobs.getByEmployer(currentUser.id);
+    const el = document.getElementById('myJobsList');
+    const noEl = document.getElementById('noJobsMsg');
+    if (!jobs.length) { el.innerHTML=''; noEl.classList.remove('hidden'); return; }
+    noEl.classList.add('hidden');
+    el.innerHTML = jobs.map(j => `
+      <div class="card animate-up">
+        <div class="flex gap-md items-center flex-wrap">
+          <div class="company-logo">${j.companyLogo||'🏢'}</div>
+          <div style="flex:1;min-width:0">
+            <div class="flex items-center gap-sm flex-wrap" style="margin-bottom:4px">
+              <span style="font-weight:700;font-size:1rem">${j.title}</span>
+              <span class="badge ${j.status==='active'?'badge-accent':'badge-muted'}">${j.status}</span>
+              ${j.remote?'<span class="badge badge-info">Remote</span>':''}
+            </div>
+            <div class="flex gap-md flex-wrap" style="font-size:0.82rem;color:var(--text-secondary)">
+              <span>📍 ${j.location}</span>
+              <span>⏱ ${j.type}</span>
+              <span>💰 ${DB.Helpers.formatSalary(j.salary.min,j.salary.max)}</span>
+            </div>
+          </div>
+          <div class="text-right" style="min-width:140px">
+            <div style="font-size:0.85rem;color:var(--text-secondary)">📋 ${j.applications||0} applicants</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">👁 ${j.views||0} views · ${DB.Helpers.timeAgo(j.createdAt)}</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="job-skills">${(j.skills||[]).slice(0,5).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
+        <div class="flex gap-sm" style="margin-top:var(--space-md)">
+          <button class="btn btn-ghost btn-sm" onclick="showSection('applicants',document.querySelector('[data-section=applicants]'));document.getElementById('jobFilterSelect').value='${j.id}';renderApplicants()">View Applicants</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleJobStatus('${j.id}','${j.status}')">${j.status==='active'?'⏸ Pause':'▶️ Activate'}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteJob('${j.id}')">🗑 Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleJobStatus(id, currentStatus) {
+    DB.Jobs.update(id, { status: currentStatus === 'active' ? 'paused' : 'active' });
+    renderMyJobs();
+    showToast('success','Job Updated','Listing status changed.');
+  }
+
+  function deleteJob(id) {
+    if (!confirm('Delete this job posting? This cannot be undone.')) return;
+    DB.Jobs.delete(id);
+    renderMyJobs();
+    renderBadges();
+    showToast('info','Job Deleted','The listing has been removed.');
+  }
+
+  /* ── Applicants ── */
+  function populateJobFilter() {
+    const jobs = DB.Jobs.getByEmployer(currentUser.id);
+    const sel = document.getElementById('jobFilterSelect');
+    jobs.forEach(j => {
+      const opt = document.createElement('option');
+      opt.value = j.id; opt.textContent = j.title;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderApplicants() {
+    const jobFilter = document.getElementById('jobFilterSelect').value;
+    const statusFilter = document.getElementById('statusFilterSelect').value;
+    let apps = DB.Applications.getByEmployer(currentUser.id);
+    if (jobFilter !== 'all') apps = apps.filter(a => a.jobId === jobFilter);
+    if (statusFilter !== 'all') apps = apps.filter(a => a.status === statusFilter);
+
+    const body = document.getElementById('applicantsBody');
+    const noEl = document.getElementById('noApplicantsMsg');
+    if (!apps.length) { body.innerHTML=''; noEl.classList.remove('hidden'); return; }
+    noEl.classList.add('hidden');
+
+    body.innerHTML = apps.map(a => `
+      <tr>
+        <td>
+          <div class="flex items-center gap-sm">
+            <div class="avatar avatar-sm ${a.seeker?.avatarClass||'avatar-gradient-1'}">${a.seeker?.avatar||'👤'}</div>
+            <div>
+              <div style="font-weight:600;font-size:0.88rem">${a.seeker?.name||'Unknown'}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">${a.seeker?.title||a.seeker?.email||''}</div>
+            </div>
+          </div>
+        </td>
+        <td style="color:var(--text-secondary);font-size:0.85rem;max-width:160px">${a.job?.title||'—'}</td>
+        <td>
+          <div class="flex flex-wrap gap-xs">
+            ${(a.seeker?.skills||[]).slice(0,3).map(s=>`<span class="tag" style="font-size:0.68rem">${s}</span>`).join('')}
+          </div>
+        </td>
+        <td style="font-size:0.8rem;color:var(--text-muted)">${DB.Helpers.timeAgo(a.appliedAt)}</td>
+        <td><span class="badge ${DB.Helpers.statusColor(a.status)}">${DB.Helpers.statusLabel(a.status)}</span></td>
+        <td>
+          <div class="flex gap-xs">
+            <button class="btn btn-ghost btn-sm" onclick="openApplicantModal('${a.id}')">View</button>
+            <select class="form-control" style="width:auto;font-size:0.75rem;padding:4px 8px" onchange="updateStatus('${a.id}',this.value)">
+              <option value="">Move to…</option>
+              <option value="screening">Screening</option>
+              <option value="interview">Interview</option>
+              <option value="offered">Offer</option>
+              <option value="rejected">Reject</option>
+            </select>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function updateStatus(appId, status) {
+    if (!status) return;
+    const stepMap = { screening:'screening', interview:'interview', offered:'offered', rejected:'rejected' };
+    DB.Applications.updateStatus(appId, status, stepMap[status]);
+    const app = DB.Applications.getByEmployer(currentUser.id).find(a => a.id === appId);
+    if (app) DB.Notifications.add(app.seekerId, status === 'offered' ? 'success' : 'info', 'Application Update', `Your application status changed to: ${DB.Helpers.statusLabel(status)}`);
+    renderApplicants();
+    showToast('success','Status Updated',`Candidate moved to ${DB.Helpers.statusLabel(status)}.`);
+  }
+
+  function openApplicantModal(appId) {
+    const app = DB.Applications.getByEmployer(currentUser.id).find(a => a.id === appId);
+    if (!app) return;
+    const s = app.seeker;
+    document.getElementById('applicantModalContent').innerHTML = `
+      <div class="modal-header">
+        <div class="flex gap-md items-center">
+          <div class="avatar avatar-lg ${s?.avatarClass||'avatar-gradient-1'}">${s?.avatar||'👤'}</div>
+          <div>
+            <h2 class="modal-title">${s?.name||'Candidate'}</h2>
+            <div style="color:var(--text-secondary)">${s?.title||''}</div>
+          </div>
+        </div>
+        <button class="btn btn-icon btn-ghost" onclick="closeApplicantModal()">✕</button>
+      </div>
+      ${s?.bio?`<p style="color:var(--text-secondary);line-height:1.7;margin-bottom:var(--space-md)">${s.bio}</p>`:''}
+      <div class="flex gap-sm flex-wrap" style="margin-bottom:var(--space-md)">
+        ${s?.location?`<span class="badge badge-muted">📍 ${s.location}</span>`:''}
+        ${s?.experience?`<span class="badge badge-muted">💼 ${s.experience}y exp</span>`:''}
+        ${s?.salary?`<span class="badge badge-accent">💰 $${(s.salary/1000).toFixed(0)}k expected</span>`:''}
+      </div>
+      <h4 style="margin-bottom:var(--space-sm)">Skills</h4>
+      <div class="flex flex-wrap gap-xs" style="margin-bottom:var(--space-lg)">
+        ${(s?.skills||[]).map(sk=>`<span class="tag">${sk}</span>`).join('')||'<span class="text-muted text-sm">None listed</span>'}
+      </div>
+      ${app.coverLetter?`<h4 style="margin-bottom:var(--space-sm)">Cover Letter</h4><p style="color:var(--text-secondary);font-size:0.88rem;line-height:1.7;margin-bottom:var(--space-lg)">${app.coverLetter}</p>`:''}
+      <h4 style="margin-bottom:var(--space-sm)">Education</h4>
+      <p style="color:var(--text-secondary);margin-bottom:var(--space-lg)">${s?.education||'Not specified'}</p>
+      <hr class="divider"/>
+      <div class="flex gap-sm" style="margin-top:var(--space-md)">
+        <button class="btn btn-primary" onclick="startChat('${s?.id}','${s?.name}')">💬 Message</button>
+        <button class="btn btn-success" onclick="updateStatus('${appId}','offered');closeApplicantModal()">✓ Send Offer</button>
+        <button class="btn btn-danger" onclick="updateStatus('${appId}','rejected');closeApplicantModal()">✕ Reject</button>
+      </div>
+    `;
+    document.getElementById('applicantModal').classList.remove('hidden');
+  }
+
+  function closeApplicantModal(e) {
+    if (!e || e.target.id === 'applicantModal') document.getElementById('applicantModal').classList.add('hidden');
+  }
+
+  /* ── Post Job ── */
+  function submitJob() {
+    const title = document.getElementById('pjTitle').value.trim();
+    const desc = document.getElementById('pjDescription').value.trim();
+    const location = document.getElementById('pjLocation').value.trim();
+    const errEl = document.getElementById('postJobError');
+
+    if (!title || !desc || !location) {
+      errEl.textContent = 'Please fill in all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const job = DB.Jobs.create({
+      title,
+      description: desc,
+      location,
+      category: document.getElementById('pjCategory').value,
+      type: document.getElementById('pjType').value,
+      salary: {
+        min: parseInt(document.getElementById('pjSalaryMin').value) || 0,
+        max: parseInt(document.getElementById('pjSalaryMax').value) || 0,
+        currency: 'USD',
+      },
+      experience: document.getElementById('pjExperience').value,
+      skills: document.getElementById('pjSkills').value.split(',').map(s=>s.trim()).filter(Boolean),
+      remote: document.getElementById('pjRemote').checked,
+      employerId: currentUser.id,
+      company: currentUser.company || currentUser.name,
+      companyLogo: currentUser.avatar || '🏢',
+      views: 0,
+      applications: 0,
+    });
+
+    showToast('success','Job Published! 🎉',`"${job.title}" is now live.`);
+    clearPostJobForm();
+    showSection('jobs', document.querySelector('[data-section=jobs]'));
+    renderMyJobs();
+    renderBadges();
+  }
+
+  function clearPostJobForm() {
+    ['pjTitle','pjDescription','pjLocation','pjSkills','pjExperience','pjSalaryMin','pjSalaryMax'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('pjRemote').checked = false;
+    document.getElementById('postJobError').style.display = 'none';
+  }
+
+  /* ── Chat ── */
+  function renderChatList() {
+    const threads = DB.Messages.getThreads(currentUser.id);
+    const list = document.getElementById('chatList');
+    if (!threads.length) { list.innerHTML='<p class="text-muted text-center" style="padding:32px;font-size:0.85rem">No messages yet</p>'; return; }
+    list.innerHTML = threads.map(t => `
+      <div class="chat-list-item ${activeThread===t.thread?'active':''}" onclick="openThread('${t.thread}','${t.other?.id}','${t.other?.name}')">
+        <div class="avatar avatar-sm ${t.other?.avatarClass||'avatar-gradient-1'}">${t.other?.avatar||'👤'}</div>
+        <div class="chat-list-info">
+          <div class="chat-list-name">${t.other?.name||'Unknown'}</div>
+          <div class="chat-list-preview">${t.last?.text||''}</div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--text-muted)">${DB.Helpers.timeAgo(t.last?.ts)}</div>
+      </div>
+    `).join('');
+  }
+
+  function startChat(userId, userName) {
+    closeApplicantModal();
+    showSection('chat', document.querySelector('[data-section=chat]'));
+    const existing = DB.Messages.getThreads(currentUser.id).find(t => t.other?.id === userId);
+    if (existing) { openThread(existing.thread, userId, userName); return; }
+    const newThread = 't_' + currentUser.id + '_' + userId + '_' + Date.now();
+    document.getElementById('chatInputArea').style.display = 'flex';
+    document.getElementById('chatInputArea').dataset.thread = newThread;
+    document.getElementById('chatInputArea').dataset.toId = userId;
+    const other = DB.Users.getById(userId);
+    document.getElementById('chatHeader').innerHTML = `
+      <div class="avatar avatar-md ${other?.avatarClass||'avatar-gradient-1'}">${other?.avatar||'👤'}</div>
+      <div><div style="font-weight:700">${userName}</div></div>
+    `;
+    document.getElementById('chatMessages').innerHTML = '';
+  }
+
+  function openThread(threadId, otherId, otherName) {
+    activeThread = threadId;
+    renderChatList();
+    const msgs = DB.Messages.getThread(threadId);
+    const other = DB.Users.getById(otherId);
+    document.getElementById('chatHeader').innerHTML = `
+      <div class="avatar avatar-md ${other?.avatarClass||'avatar-gradient-1'}">${other?.avatar||'👤'}</div>
+      <div><div style="font-weight:700">${otherName||other?.name||'Candidate'}</div></div>
+    `;
+    const msgsEl = document.getElementById('chatMessages');
+    msgsEl.innerHTML = msgs.map(m => {
+      const own = m.fromId === currentUser.id;
+      return `
+        <div class="chat-msg ${own?'own':''}">
+          ${!own?`<div class="avatar avatar-sm ${other?.avatarClass||''}">${other?.avatar||'👤'}</div>`:''}
+          <div><div class="chat-bubble">${m.text}</div><div class="chat-time">${DB.Helpers.timeAgo(m.ts)}</div></div>
+        </div>
+      `;
+    }).join('');
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+    document.getElementById('chatInputArea').style.display = 'flex';
+    document.getElementById('chatInputArea').dataset.thread = threadId;
+    document.getElementById('chatInputArea').dataset.toId = otherId;
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const area = document.getElementById('chatInputArea');
+    DB.Messages.send(currentUser.id, area.dataset.toId, text, area.dataset.thread);
+    input.value = '';
+    openThread(area.dataset.thread, area.dataset.toId, '');
+  }
+
+  /* ── Notifications ── */
+  function renderNotificationsView() {
+    const notifs = DB.Notifications.getForUser(currentUser.id);
+    const icons = { success:'🎉', info:'ℹ️', warning:'⚠️', error:'❌' };
+    document.getElementById('notifList').innerHTML = notifs.map(n => `
+      <div class="card card-sm flex gap-md items-center animate-up">
+        <div class="stat-icon" style="background:rgba(108,99,255,0.12)">${icons[n.type]||'🔔'}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:0.9rem">${n.title}</div>
+          <div style="font-size:0.82rem;color:var(--text-muted)">${n.message}</div>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">${DB.Helpers.timeAgo(n.ts)}</div>
+        ${!n.read?'<div style="width:8px;height:8px;border-radius:50%;background:var(--primary)"></div>':''}
+      </div>
+    `).join('') || '<p class="text-muted text-center" style="padding:40px">No notifications</p>';
+  }
+
+  function markAllRead() {
+    DB.Notifications.markRead(currentUser.id);
+    renderNotificationsView();
+    renderBadges();
+    showToast('success','All Caught Up','');
+  }
+
+  /* ── Employer Profile ── */
+  function renderEmpProfile() {
+    const u = DB.Auth.getCurrentUser();
+    const av = document.getElementById('profileAvatar');
+    av.className = `avatar avatar-xl ${u.avatarClass}`;
+    av.textContent = u.avatar;
+    document.getElementById('empCompanyName').textContent = u.company || u.name;
+    document.getElementById('empIndustry').textContent = u.industry || 'Industry not set';
+
+    const stats = DB.Stats.getEmployer(u.id);
+    document.getElementById('empProfileStats').innerHTML = [
+      { label:'Active Jobs', value: stats.activeJobs },
+      { label:'Total Applications', value: stats.totalApplications },
+      { label:'Shortlisted', value: stats.shortlisted },
+      { label:'Profile Views', value: stats.totalViews },
+    ].map(s=>`
+      <div class="flex items-center justify-between">
+        <span style="font-size:0.85rem;color:var(--text-secondary)">${s.label}</span>
+        <span style="font-weight:700">${s.value}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('empLinks').innerHTML = [
+      { icon:'🌐', label: u.website || 'No website set', href: u.website },
+      { icon:'📧', label: u.email||'', href: null },
+    ].map(l=>`
+      <div class="flex items-center gap-sm" style="padding:8px 0;border-bottom:1px solid var(--glass-border)">
+        <span>${l.icon}</span>
+        ${l.href?`<a href="${l.href}" target="_blank" style="color:var(--primary-light);font-size:0.88rem">${l.label}</a>`:
+        `<span style="color:var(--text-secondary);font-size:0.88rem">${l.label}</span>`}
+      </div>
+    `).join('');
+  }
+
+  function toggleEmpEdit() {
+    const form = document.getElementById('empEditForm');
+    const u = DB.Auth.getCurrentUser();
+    if (form.classList.contains('hidden')) {
+      document.getElementById('editCompany').value = u.company||'';
+      document.getElementById('editIndustry').value = u.industry||'';
+      document.getElementById('editWebsite').value = u.website||'';
+      document.getElementById('editAbout').value = u.about||'';
+    }
+    form.classList.toggle('hidden');
+  }
+
+  function saveEmpProfile() {
+    DB.Auth.updateProfile({
+      company: document.getElementById('editCompany').value.trim(),
+      industry: document.getElementById('editIndustry').value.trim(),
+      website: document.getElementById('editWebsite').value.trim(),
+      about: document.getElementById('editAbout').value.trim(),
+    });
+    currentUser = DB.Auth.getCurrentUser();
+    renderEmpProfile();
+    renderSidebarUser();
+    toggleEmpEdit();
+    showToast('success','Profile Updated','Company info saved.');
+  }
+
+  /* ── Section nav ── */
+  function showSection(id, navEl) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('section' + id.charAt(0).toUpperCase() + id.slice(1)).classList.add('active');
+    if (navEl) navEl.classList.add('active');
+    if (id === 'jobs') renderMyJobs();
+    else if (id === 'applicants') renderApplicants();
+    else if (id === 'chat') renderChatList();
+    else if (id === 'notifications') { renderNotificationsView(); DB.Notifications.markRead(currentUser.id); renderBadges(); }
+    else if (id === 'profile') renderEmpProfile();
+  }
+
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); }
+  function logout() { DB.Auth.logout(); window.location.href = '../index.html'; }
+
+  init();
+</script>
+</body>
+</html>
